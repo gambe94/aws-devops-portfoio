@@ -1,9 +1,15 @@
-variable "aws_region" {
-  default = "eu-central-1"
+variable "vpc_id" {
+  description = "The VPC ID for Jenkins EC2"
+  type        = string
+}
+
+variable "subnet_id" {
+  description = "The subnet ID for Jenkins EC2"
+  type        = string
 }
 
 variable "jenkins_ami_id" {
-  description = "AMI ID to use for the Jenkins server"
+  description = "The AMI ID for the Jenkins server"
   type        = string
 }
 

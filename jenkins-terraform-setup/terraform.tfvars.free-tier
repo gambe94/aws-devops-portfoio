@@ -1,0 +1,12 @@
+# Free Tier Configuration - Single Agent (FREE)
+jenkins_ami_id               = "ami-09191d47657c9691a"
+jenkins_instance_type        = "t3.micro"     # Free tier: 1 vCPU, 1GB RAM
+jenkins_volume_size          = 20             # Free tier: up to 30GB
+
+# Single Jenkins Agent Configuration (to stay within Free Tier)
+jenkins_agent_instance_type  = "t3.micro"     # Free tier: 1 vCPU, 1GB RAM
+jenkins_agent_volume_size    = 15             # Smaller storage for demo
+enable_jenkins_agents        = true           # Enable only first agent
+
+# To disable the second agent and stay completely within free tier,
+# you can modify agent_nodes.tf to create only one agent instance
