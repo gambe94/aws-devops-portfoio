@@ -1,5 +1,11 @@
+resource "random_string" "suffix" {
+  length  = 8
+  special = false
+  upper   = false
+}
+
 resource "aws_iam_role" "jenkins" {
-  name = "jenkins-role"
+  name = "jenkins-role-${random_string.suffix.result}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -22,13 +28,13 @@ resource "aws_iam_policy_attachment" "jenkins_policy_attach" {
 }
 
 resource "aws_iam_instance_profile" "jenkins_profile" {
-  name = "jenkins-instance-profile"
+  name = "jenkins-instance-profile-${random_string.suffix.result}"
   role = aws_iam_role.jenkins.name
 }
 
 # IAM role for Jenkins agents
 resource "aws_iam_role" "jenkins_agent" {
-  name = "jenkins-agent-role"
+  name = "jenkins-agent-role-${random_string.suffix.result}"
 
   assume_role_policy = jsonencode({
     Version = "2012-10-17",
@@ -50,7 +56,7 @@ resource "aws_iam_role" "jenkins_agent" {
 
 # IAM policy for Jenkins agents
 resource "aws_iam_policy" "jenkins_agent_policy" {
-  name        = "jenkins-agent-policy"
+  name        = "jenkins-agent-policy-${random_string.suffix.result}"
   description = "Policy for Jenkins agent nodes"
 
   policy = jsonencode({
@@ -104,6 +110,6 @@ resource "aws_iam_role_policy_attachment" "jenkins_agent_policy_attach" {
 }
 
 resource "aws_iam_instance_profile" "jenkins_agent_profile" {
-  name = "jenkins-agent-instance-profile"
+  name = "jenkins-agent-instance-profile-${random_string.suffix.result}"
   role = aws_iam_role.jenkins_agent.name
 }

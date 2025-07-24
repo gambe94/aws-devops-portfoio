@@ -23,11 +23,10 @@ trap 'handle_error $LINENO' ERR
 echo "Updating system packages..."
 sudo yum update -y
 
-# Install essential tools
+# Install essential tools (handle curl conflict)
 echo "Installing essential tools..."
 sudo yum install -y \
     wget \
-    curl \
     git \
     unzip \
     vim \
@@ -35,12 +34,28 @@ sudo yum install -y \
     tree \
     jq
 
-# Add Jenkins repository and import GPG key
+# Handle curl conflict by using curl-minimal (which is already installed)
+echo "Checking curl installation..."
+if ! command -v curl &> /dev/null; then
+    echo "Installing curl (removing curl-minimal first)..."
+    sudo yum remove -y curl-minimal     
+    sudo yum install -y curl
+else
+    echo "curl is already available via curl-minimal"
+fi
+
+# Add Jenkins repository and import GPG key (following official Red Hat docs)
 echo "Adding Jenkins repository..."
 sudo wget -O /etc/yum.repos.d/jenkins.repo \
     https://pkg.jenkins.io/redhat-stable/jenkins.repo
 
-sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io.key
+# Import Jenkins GPG key with the correct 2023 key
+echo "Importing Jenkins GPG key..."
+sudo rpm --import https://pkg.jenkins.io/redhat-stable/jenkins.io-2023.key
+
+# Install required dependencies for Jenkins (as per official docs)
+echo "Installing Jenkins dependencies..."
+sudo yum install -y fontconfig
 
 # Upgrade all packages
 echo "Upgrading packages..."
@@ -60,7 +75,7 @@ JAVA_HOME_PATH="/usr/lib/jvm/java-17-amazon-corretto.x86_64"
 echo "export JAVA_HOME=$JAVA_HOME_PATH" | sudo tee /etc/environment
 echo "export PATH=\$PATH:\$JAVA_HOME/bin" | sudo tee -a /etc/environment
 
-# Install Jenkins
+# Install Jenkins (following official Red Hat documentation)
 echo "Installing Jenkins..."
 sudo yum install -y jenkins
 

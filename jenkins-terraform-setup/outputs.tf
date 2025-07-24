@@ -22,3 +22,8 @@ output "jenkins_agent_1_private_ip" {
   value       = module.jenkins.jenkins_agent_1_private_ip
   description = "Private IP of Jenkins Salesforce Agent"
 }
+
+output "vpc_id" {
+  value       = module.network.vpc_id
+  description = "VPC ID where Jenkins infrastructure is deployed"
+}

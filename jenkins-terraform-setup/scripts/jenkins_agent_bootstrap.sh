@@ -32,11 +32,10 @@ trap 'handle_error $LINENO' ERR
 echo "Updating system packages..."
 sudo yum update -y
 
-# Install essential tools
+# Install essential tools (handle curl conflict)
 echo "Installing essential tools..."
 sudo yum install -y \
     wget \
-    curl \
     git \
     unzip \
     vim \
@@ -44,6 +43,16 @@ sudo yum install -y \
     tree \
     jq \
     nc
+
+# Handle curl conflict by using curl-minimal (which is already installed)
+echo "Checking curl installation..."
+if ! command -v curl &> /dev/null; then
+    echo "Installing curl (removing curl-minimal first)..."
+    sudo yum remove -y curl-minimal
+    sudo yum install -y curl
+else
+    echo "curl is already available via curl-minimal"
+fi
 
 # Install Java 17 Amazon Corretto
 echo "Installing Java 17..."
