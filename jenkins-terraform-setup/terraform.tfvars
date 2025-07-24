@@ -1,0 +1,1 @@
+jenkins_ami_id = "ami-09191d47657c9691a"
