@@ -82,8 +82,13 @@ if [ -f /etc/sysconfig/jenkins ]; then
     sudo sed -i "s|^#JAVA_HOME.*|JAVA_HOME=$JAVA_HOME_PATH|" /etc/sysconfig/jenkins
     sudo sed -i "s|^JAVA_HOME.*|JAVA_HOME=$JAVA_HOME_PATH|" /etc/sysconfig/jenkins
     
-    # Set memory limits for t3.micro
-    sudo sed -i 's/^JENKINS_JAVA_OPTIONS=.*/JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true -Xms256m -Xmx512m"/' /etc/sysconfig/jenkins
+    # Set memory limits for t3.micro and configure temp directory
+    sudo sed -i 's/^JENKINS_JAVA_OPTIONS=.*/JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true -Xms256m -Xmx512m -Djava.io.tmpdir=\/var\/lib\/jenkins\/tmp"/' /etc/sysconfig/jenkins
+    
+    # Create Jenkins temp directory with proper permissions
+    sudo mkdir -p /var/lib/jenkins/tmp
+    sudo chown jenkins:jenkins /var/lib/jenkins/tmp
+    sudo chmod 755 /var/lib/jenkins/tmp
     
     # Restart Jenkins to apply new settings
     echo "Restarting Jenkins to apply configuration..."

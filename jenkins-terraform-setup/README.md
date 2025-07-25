@@ -10,8 +10,7 @@ This Terraform configuration deploys a Jenkins CI/CD server on AWS with enhanced
 - **Enhanced Bootstrap**: Comprehensive setup script with error handling
 - **DevOps Tools**: Pre-installed Docker, AWS CLI, and Terraform
 - **Security**: IAM roles and security groups configured
-- **Salesforce Agent**: Single agent node optimized for Salesforce development
-- **Node.js Ready**: Full Node.js development environment with Salesforce CLI
+- **Built-in Executors**: Jenkins master can run builds directly
 
 ## 📋 Prerequisites
 
@@ -28,11 +27,9 @@ This Terraform configuration deploys a Jenkins CI/CD server on AWS with enhanced
 
 ### Jenkins Module (`./jenkins/`)
 - EC2 instance with Elastic IP
-- Security groups (ports 22, 8080, 50000)
+- Security groups (ports 22, 8080)
 - IAM roles and instance profile
 - Enhanced bootstrap script
-- Single Salesforce agent node with Node.js and SF CLI
-- Agent-specific security groups and IAM roles
 
 ## ⚙️ Configuration
 
@@ -48,11 +45,6 @@ This Terraform configuration deploys a Jenkins CI/CD server on AWS with enhanced
 jenkins_ami_id               = "ami-09191d47657c9691a"  # Amazon Linux 2
 jenkins_instance_type        = "t3.micro"              # Free Tier
 jenkins_volume_size          = 20                      # GB
-
-# Jenkins Agent Configuration (Free Tier)
-jenkins_agent_instance_type  = "t3.micro"              # Free Tier
-jenkins_agent_volume_size    = 15                      # GB
-enable_jenkins_agents        = true                    # Enable/disable agents
 ```
 
 ### Available Instance Types
@@ -89,8 +81,6 @@ After deployment, you'll get:
 - `jenkins_public_ip`: Static public IP address
 - `jenkins_private_ip`: Private IP within VPC
 - `jenkins_instance_id`: EC2 instance identifier
-- `jenkins_agent_1_public_ip`: Public IP of Salesforce Agent
-- `jenkins_agent_1_private_ip`: Private IP of Salesforce Agent
 
 ## 🔧 Post-Deployment Setup
 
@@ -98,7 +88,7 @@ After deployment, you'll get:
 2. **Initial Password**: Check bootstrap logs or EC2 system logs
 3. **Install Plugins**: Recommended plugins for CI/CD
 4. **Configure Security**: Set up users and permissions
-5. **Setup Agents**: Follow the [Agent Setup Guide](./AGENT_SETUP.md) for Docker agent configuration
+5. **Create Jobs**: Start building your CI/CD pipelines
 
 ## 📦 Pre-installed Tools
 
@@ -167,16 +157,16 @@ sudo systemctl restart jenkins
 
 **Monthly Cost Breakdown:**
 - **Master**: t3.micro (1GB RAM) - FREE (750 hours/month)
-- **Salesforce Agent**: t3.micro (1GB RAM) - FREE (750 hours/month)  
-- **EBS Storage**: 30GB total - FREE (30GB included)
+- **Jenkins Master**: t3.micro (1GB RAM) - FREE (750 hours/month)  
+- **EBS Storage**: 20GB total - FREE (30GB included)
 - **Elastic IP**: FREE (when attached to running instance)
 
 **Total Demo Cost: 100% FREE!** 🎉
 
 ### Free Tier Optimization Tips:
-- Perfect setup for Salesforce development learning
-- Both instances covered by free tier
-- Stop instances when not in use to save hours
+- Perfect setup for learning Jenkins and CI/CD
+- Single instance covered by free tier
+- Stop instance when not in use to save hours
 - Monitor usage with AWS Cost Explorer
 - Set up billing alerts for peace of mind
 
@@ -198,11 +188,11 @@ chmod +x manage-jenkins.sh
 # Check current status and costs
 ./manage-jenkins.sh status
 
-# Stop agents when not building (saves money)
-./manage-jenkins.sh stop agents
+# Stop Jenkins when not in use (saves money)
+./manage-jenkins.sh stop
 
-# Start only what you need
-./manage-jenkins.sh start master
+# Start Jenkins when needed
+./manage-jenkins.sh start
 
 # Get help
 ./manage-jenkins.sh help

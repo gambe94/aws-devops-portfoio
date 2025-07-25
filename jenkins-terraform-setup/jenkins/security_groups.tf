@@ -19,14 +19,6 @@ resource "aws_security_group" "jenkins_sg" {
     description = "SSH access"
   }
 
-  ingress {
-    from_port   = 50000
-    to_port     = 50000
-    protocol    = "tcp"
-    cidr_blocks = ["10.0.0.0/16"]  # Allow from VPC CIDR
-    description = "Jenkins agent communication"
-  }
-
   egress {
     from_port   = 0
     to_port     = 0
