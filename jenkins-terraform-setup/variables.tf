@@ -16,5 +16,5 @@ variable "jenkins_instance_type" {
 variable "jenkins_volume_size" {
   description = "The size of the EBS volume for Jenkins in GB"
   type        = number
-  default     = 20
+  default     = 30
 }

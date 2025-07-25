@@ -1,0 +1,28 @@
+# Terraform files
+*.tfstate
+*.tfstate.*
+*.tfvars.backup
+.terraform/
+.terraform.lock.hcl
+
+# SSH private keys (auto-generated)
+jenkins-key.pem
+*.pem
+
+# Logs
+*.log
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Local environment files
+.env
+.env.local

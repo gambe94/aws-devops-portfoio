@@ -71,9 +71,12 @@ jenkins_volume_size          = 20                      # GB
    ```
 
 4. **Access Jenkins**:
-   - Use the static IP provided in outputs
-   - Default port: 8080
-   - Get initial admin password from the logs
+   - **Web UI**: Use the static IP provided in outputs (port 8080)
+   - **SSH Access**: Use the auto-generated `jenkins-key.pem` file
+   - **Key Location**: Created automatically in your project directory
+   - **Initial Password**: Retrieved from bootstrap logs
+
+> **🔑 SSH Key**: No manual key pair creation needed! Terraform automatically generates `jenkins-key.pem` for secure access.
 
 ## 📊 Outputs
 
@@ -81,14 +84,19 @@ After deployment, you'll get:
 - `jenkins_public_ip`: Static public IP address
 - `jenkins_private_ip`: Private IP within VPC
 - `jenkins_instance_id`: EC2 instance identifier
+- `jenkins_key_name`: Auto-generated key pair name
+- `jenkins_ssh_command`: Ready-to-use SSH command
 
 ## 🔧 Post-Deployment Setup
 
-1. **Access Jenkins**: `http://<static-ip>:8080`
-2. **Initial Password**: Check bootstrap logs or EC2 system logs
-3. **Install Plugins**: Recommended plugins for CI/CD
-4. **Configure Security**: Set up users and permissions
-5. **Create Jobs**: Start building your CI/CD pipelines
+1. **Access Jenkins Web UI**: `http://<static-ip>:8080`
+2. **SSH Access**: Use the auto-generated key: `ssh -i jenkins-key.pem ec2-user@<public-ip>`
+3. **Initial Password**: Check bootstrap logs or run `sudo cat /var/lib/jenkins/secrets/initialAdminPassword`
+4. **Install Plugins**: Recommended plugins for CI/CD
+5. **Configure Security**: Set up users and permissions
+6. **Create Jobs**: Start building your CI/CD pipelines
+
+> **Note**: The `jenkins-key.pem` file is automatically created in your project directory for SSH access.
 
 ## 📦 Pre-installed Tools
 
@@ -103,10 +111,11 @@ The bootstrap script installs:
 
 ## 🔒 Security Features
 
-- Encrypted EBS volumes
-- IAM roles with least privilege
-- Security groups restricting access
-- Regular system updates via bootstrap script
+- **Auto-generated SSH Keys**: No need to create key pairs manually
+- **Encrypted EBS volumes**: Data at rest encryption
+- **IAM roles with least privilege**: Minimal required permissions
+- **Security groups**: Restricting access to necessary ports only
+- **Regular system updates**: Via bootstrap script
 
 ## 📝 Maintenance
 
@@ -136,6 +145,37 @@ The bootstrap script installs:
 3. **Performance issues**:
    - Consider upgrading to `t3.xlarge`
    - Monitor memory usage with `htop`
+
+4. **Disk space warning on /tmp**:
+   - Jenkins shows "/tmp space below 1GB" even with 30GB available
+   - This is because `/tmp` is a separate tmpfs filesystem (453MB)
+   - Fix: Configure Jenkins to use custom temp directory on main volume
+
+### Fix /tmp Disk Space Warning
+
+```bash
+# SSH to Jenkins server
+ssh -i jenkins-key.pem ec2-user@<jenkins-ip>
+
+# Create custom temp directory
+sudo mkdir -p /var/lib/jenkins/tmp
+sudo chown jenkins:jenkins /var/lib/jenkins/tmp
+sudo chmod 755 /var/lib/jenkins/tmp
+
+# Configure Jenkins to use custom temp directory
+sudo mkdir -p /etc/systemd/system/jenkins.service.d
+sudo tee /etc/systemd/system/jenkins.service.d/override.conf > /dev/null << 'EOF'
+[Service]
+Environment="JAVA_OPTS=-Djava.awt.headless=true -Xms256m -Xmx512m -Djava.io.tmpdir=/var/lib/jenkins/tmp"
+EOF
+
+# Reload systemd and restart Jenkins
+sudo systemctl daemon-reload
+sudo systemctl restart jenkins
+
+# Verify the fix
+sudo systemctl status jenkins
+```
 
 ### Useful Commands
 

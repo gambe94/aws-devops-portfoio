@@ -77,24 +77,25 @@ sudo usermod -aG docker jenkins
 
 # Optimize Jenkins for t3.micro instance (1GB RAM)
 echo "Optimizing Jenkins configuration for t3.micro..."
-JAVA_HOME_PATH="/usr/lib/jvm/java-17-amazon-corretto"
-if [ -f /etc/sysconfig/jenkins ]; then
-    sudo sed -i "s|^#JAVA_HOME.*|JAVA_HOME=$JAVA_HOME_PATH|" /etc/sysconfig/jenkins
-    sudo sed -i "s|^JAVA_HOME.*|JAVA_HOME=$JAVA_HOME_PATH|" /etc/sysconfig/jenkins
-    
-    # Set memory limits for t3.micro and configure temp directory
-    sudo sed -i 's/^JENKINS_JAVA_OPTIONS=.*/JENKINS_JAVA_OPTIONS="-Djava.awt.headless=true -Xms256m -Xmx512m -Djava.io.tmpdir=\/var\/lib\/jenkins\/tmp"/' /etc/sysconfig/jenkins
-    
-    # Create Jenkins temp directory with proper permissions
-    sudo mkdir -p /var/lib/jenkins/tmp
-    sudo chown jenkins:jenkins /var/lib/jenkins/tmp
-    sudo chmod 755 /var/lib/jenkins/tmp
-    
-    # Restart Jenkins to apply new settings
-    echo "Restarting Jenkins to apply configuration..."
-    sudo systemctl restart jenkins
-    sleep 30
-fi
+
+# Create Jenkins temp directory with proper permissions
+sudo mkdir -p /var/lib/jenkins/tmp
+sudo chown jenkins:jenkins /var/lib/jenkins/tmp
+sudo chmod 755 /var/lib/jenkins/tmp
+
+# Configure Jenkins via systemd override (modern approach)
+echo "Configuring Jenkins Java options via systemd..."
+sudo mkdir -p /etc/systemd/system/jenkins.service.d
+sudo tee /etc/systemd/system/jenkins.service.d/override.conf > /dev/null << 'EOF'
+[Service]
+Environment="JAVA_OPTS=-Djava.awt.headless=true -Xms256m -Xmx512m -Djava.io.tmpdir=/var/lib/jenkins/tmp"
+EOF
+
+# Reload systemd and restart Jenkins to apply new settings
+echo "Restarting Jenkins to apply configuration..."
+sudo systemctl daemon-reload
+sudo systemctl restart jenkins
+sleep 30
 
 # Create proper Jenkins directories
 sudo mkdir -p /var/lib/jenkins/logs
