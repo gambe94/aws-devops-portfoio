@@ -73,8 +73,29 @@ After running `terraform apply`, you'll have:
 
 3. Copy public key to agents:
    ```bash
-   # For each agent
-   ssh-copy-id -i /var/lib/jenkins/.ssh/id_rsa.pub jenkins@<agent_ip>
+   # First, display the public key content
+   sudo cat /var/lib/jenkins/.ssh/id_rsa.pub
+   
+   # SSH to each agent as ec2-user and manually add the key
+   ssh -i your-key.pem ec2-user@<agent_ip>
+   
+   # On the agent, switch to jenkins user and add the public key
+   sudo su - jenkins
+   mkdir -p ~/.ssh
+   chmod 700 ~/.ssh
+   
+   # Create authorized_keys file and paste the public key content
+   vi ~/.ssh/authorized_keys
+   # Paste the public key content from the master, then save and exit
+   
+   chmod 600 ~/.ssh/authorized_keys
+   exit  # exit from jenkins user back to ec2-user
+   ```
+
+   **Alternative one-liner method:**
+   ```bash
+   # From Jenkins master, copy the key directly
+   sudo cat /var/lib/jenkins/.ssh/id_rsa.pub | ssh -i your-key.pem ec2-user@<agent_ip> "sudo -u jenkins tee -a /home/jenkins/.ssh/authorized_keys && sudo -u jenkins chmod 600 /home/jenkins/.ssh/authorized_keys && sudo -u jenkins chmod 700 /home/jenkins/.ssh"
    ```
 
 ## 🐳 Salesforce & Node.js Pipeline Examples

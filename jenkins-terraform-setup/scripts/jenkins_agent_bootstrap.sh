@@ -32,7 +32,7 @@ trap 'handle_error $LINENO' ERR
 echo "Updating system packages..."
 sudo yum update -y
 
-# Install essential tools (handle curl conflict)
+# Install essential tools 
 echo "Installing essential tools..."
 sudo yum install -y \
     wget \
@@ -44,22 +44,14 @@ sudo yum install -y \
     jq \
     nc
 
-# Handle curl conflict by using curl-minimal (which is already installed)
-echo "Checking curl installation..."
-if ! command -v curl &> /dev/null; then
-    echo "Installing curl (removing curl-minimal first)..."
-    sudo yum remove -y curl-minimal
-    sudo yum install -y curl
-else
-    echo "curl is already available via curl-minimal"
-fi
 
-# Install Java 17 Amazon Corretto
+
+# Install Java 17 Amazon Corretto (following official Jenkins tutorial)
 echo "Installing Java 17..."
-sudo yum install -y java-17-amazon-corretto-devel
+sudo yum install -y java-17-amazon-corretto
 
 # Set JAVA_HOME environment variable
-JAVA_HOME_PATH="/usr/lib/jvm/java-17-amazon-corretto.x86_64"
+JAVA_HOME_PATH="/usr/lib/jvm/java-17-amazon-corretto"
 echo "export JAVA_HOME=$JAVA_HOME_PATH" | sudo tee /etc/environment
 echo "export PATH=\$PATH:\$JAVA_HOME/bin" | sudo tee -a /etc/environment
 
@@ -83,14 +75,23 @@ sudo mkdir -p /home/jenkins/agent
 sudo chown -R jenkins:jenkins /home/jenkins
 sudo chmod 755 /home/jenkins/agent
 
-# Install Docker Compose
+# Install Docker Compose (handle potential curl issues)
 echo "Installing Docker Compose..."
-sudo curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+DOCKER_COMPOSE_VERSION="v2.24.5"
+if command -v curl &> /dev/null; then
+    sudo curl -L "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+else
+    sudo wget -O /usr/local/bin/docker-compose "https://github.com/docker/compose/releases/download/$DOCKER_COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)"
+fi
 sudo chmod +x /usr/local/bin/docker-compose
 
-# Install AWS CLI v2
+# Install AWS CLI v2 (handle potential curl issues)
 echo "Installing AWS CLI v2..."
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+if command -v curl &> /dev/null; then
+    curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+else
+    wget "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -O "awscliv2.zip"
+fi
 unzip awscliv2.zip
 sudo ./aws/install
 rm -rf aws awscliv2.zip
@@ -103,15 +104,24 @@ unzip "terraform_$${TERRAFORM_VERSION}_linux_amd64.zip"
 sudo mv terraform /usr/local/bin/
 rm "terraform_$${TERRAFORM_VERSION}_linux_amd64.zip"
 
-# Install kubectl
+# Install kubectl (handle potential curl issues)
 echo "Installing kubectl..."
-curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+if command -v curl &> /dev/null; then
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+else
+    KUBECTL_VERSION=$(wget -qO- https://dl.k8s.io/release/stable.txt)
+    wget "https://dl.k8s.io/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl"
+fi
 sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
 rm kubectl
 
-# Install Node.js and npm (using NodeSource repository)
+# Install Node.js and npm (handle potential curl issues)
 echo "Installing Node.js..."
-curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+if command -v curl &> /dev/null; then
+    curl -fsSL https://rpm.nodesource.com/setup_18.x | sudo bash -
+else
+    wget -qO- https://rpm.nodesource.com/setup_18.x | sudo bash -
+fi
 sudo yum install -y nodejs
 
 # Verify Node.js installation
